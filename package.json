@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-samen-eten-server",
+  "version": "1.0.0",
+  "description": "Nodejs server voor programmeren 4",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "Avans",
+    "Nodejs",
+    "Programmeren"
+  ],
+  "author": "Justin",
+  "license": "ISC"
+}
