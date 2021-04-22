@@ -13,5 +13,8 @@
     "Programmeren"
   ],
   "author": "Justin",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
