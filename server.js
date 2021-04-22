@@ -11,13 +11,13 @@ app.get('/', (req, res) => {
 })
 
 // UC-103 Systeeminfo opvragen
-app.get('/system', (req, res) => {
-  let result = {
-    name: 'Justin Rodrigues da Silva',
-    studentNr: 2144403,
-    description: 'This is a api that returns information about food'
+app.get('/api/info', (req, res) => {
+  let info = {
+    'name': 'Justin Rodrigues da Silva',
+    'studentNr': 2144403,
+    'description': 'This is a api that returns information about food'
   }
-  res.json(result)
+  res.json(info)
 })
 
 app.listen(port, () => {
