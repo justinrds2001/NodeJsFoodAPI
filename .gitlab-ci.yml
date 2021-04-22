@@ -30,29 +30,10 @@ variables:
 testing:
   stage: test
   image: node:latest
-  services:
-    - mysql:5.6
-  variables:
-    NODE_ENV: development
-    DB_USER: root
-    DB_DATABASE: ${MYSQL_DATABASE}
-    DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    DB_HOST: mysql
-  before_script:
-    # Install the database into the node:latest container
-    - apt-get update
-    - apt-get -y install mysql-client
-    # Create our database by running the database.sql script
-    - mysql --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE} < movies.sql
-    - mysqlshow --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE}
-    # Install the node packages that our server needs.
-    - npm install --no-optional
   script:
     - npm run test
-    - echo "SONAR_LOGIN_KEY = $SONAR_LOGIN_KEY"
-    - echo "SONAR_PROJECT_KEY = $SONAR_PROJECT_KEY"
-    - npm run sonar
-
+  only:
+    - master
 #
 # Deploy to Heroku
 # DPL is a deploy tool made for continuous deployment that’s developed and used
