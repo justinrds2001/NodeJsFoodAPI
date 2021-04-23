@@ -15,7 +15,8 @@ app.get('/api/info', (req, res) => {
   let info = {
     'name': 'Justin Rodrigues da Silva',
     'studentNr': 2144403,
-    'description': 'This is a api that returns information about food'
+    'description': 'This is a api that returns information about food',
+    'sonarqube-url':''
   }
   res.json(info)
 })
