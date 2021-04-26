@@ -16,7 +16,8 @@
   "author": "Justin",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "tracer": "^1.1.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
