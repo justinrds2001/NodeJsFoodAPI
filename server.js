@@ -3,25 +3,22 @@ const app = express()
 const port = process.env.PORT || 3000
 app.use(express.json()) // for parsing application/json
 
-// repository
+// Repository
 let studenthomes = []
 
-// Default
-app.get('/', (req, res) => {
-  let result = {
-    'response': 'Hello World!',
-    'status': 'Alles OK!'
-  }
-  res.status(200).json(result)
+// Logger endpoint
+app.all("*", (req, res, next) => {
+  console.log("Endpoint called: " + req.method + " " + req.url)
+  next()
 })
 
 // UC-103 Systeeminfo opvragen
 app.get('/api/info', (req, res) => {
-  let info = {
-    'name': 'Justin Rodrigues da Silva',
-    'studentNr': 2144403,
-    'description': 'This is a api that returns information about studenthomes and meals',
-    'sonarQubeUrl':''
+  const info = {
+    name: 'Justin Rodrigues da Silva',
+    studentNr: 2144403,
+    description: 'This is a api that returns information about studenthomes and meals',
+    sonarQubeUrl:''
   }
   res.status(200).json(info)
 })
@@ -54,6 +51,23 @@ app.get('/api/info', (req, res) => {
 // app.put('/api/studenthome/:homeId/user', (req, res) => {
   
 // })
+
+// Catch all endpoint
+app.all("*", (req, res, next) => {
+  console.log("catch-all endpoint called")
+  next({error: 'Endpoint does not exist', errorCode: 401})
+})
+
+// Error handler
+app.use("*", (error, req, res, next) => {
+  console.log("Errorhandler called!")
+  console.log(error)
+
+  res.status(error.errorCode).json({
+    message: "Some error occured",
+    error: error
+  })
+})
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
