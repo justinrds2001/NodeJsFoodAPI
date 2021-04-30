@@ -1,7 +1,10 @@
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000
+
 const studenthomeRoutes = require('./src/routes/studenthome-routes')
+const mealRoutes = require('./src/routes/meal-routes')
+
 const logger = require('tracer').console()
 app.use(express.json()) // for parsing application/json
 
@@ -13,6 +16,7 @@ app.all("*", (req, res, next) => {
 
 // Install the routes
 app.use('/api/studenthome', studenthomeRoutes)
+app.use('/api/studenthome', mealRoutes)
 
 // UC-103 Systeeminfo opvragen
 app.get('/api/info', (req, res) => {

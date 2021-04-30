@@ -6,18 +6,18 @@ const router = express.Router()
 
 // Logger endpoint
   
-// UC-201 en UC-202
+// UC-201 and UC-202
 router.route('/')
     .post(studenthomeController.create)
     .get(studenthomeController.getAll)
   
-// UC-203, UC-204 en UC-205 (concept)
+// UC-203, UC-204 and UC-205
 router.route('/:homeId')
     .get(studenthomeController.getById)
     .put(studenthomeController.update)
     .delete(studenthomeController.delete)
   
-// UC-206 Gebruiker toevoegen aan studentenhuis (concept)
+// UC-206 Gebruiker toevoegen aan studentenhuis
 router.put('/:homeId/user', studenthomeController.addUser)
 
 module.exports = router
