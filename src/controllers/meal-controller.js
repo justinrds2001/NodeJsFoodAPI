@@ -1,7 +1,27 @@
 const database = require("../dao/database");
 const logger = require('tracer').console();
+const assert = require("assert");
 
 module.exports = {
+    validateMeal(req, res, next) {
+        console.log("validate movie");
+        console.log(req.body);
+        try {
+            const { name, description, addedAt, offeredAt, price, allergyInfo, ingredients} = req.body
+            assert(typeof name === 'string', 'name is missing!')
+            assert(typeof description === 'string', 'description is missing!')
+            assert(typeof addedAt === 'string', 'added at is missing!')
+            assert(typeof offeredAt === 'string', 'offered at is missing!')
+            assert(typeof price === 'string', 'price is missing!')
+            assert(typeof allergyInfo === 'string', 'allergy info is missing')
+            assert(typeof ingredients === 'object', 'ingredients are missing!')
+            next()
+        } catch (err) {
+            console.log("Meal data is invalid!: ", err.message);
+            next({ message: err.message, errorCode: 400 });
+        }
+    },
+
     create: (req, res, next) => {
         const studenthomeId = req.params.homeId
         let studenthome = database.getStudentHomeById(studenthomeId)
@@ -39,7 +59,7 @@ module.exports = {
         const meal = database.getMealByHomeId(mealId, studenthomeId)
         const newMeal = req.body
         newMeal.id = parseInt(mealId)
-        let studenthome = database.getStudentHomeById(studenthomeId)
+        const studenthome = database.getStudentHomeById(studenthomeId)
         studenthome.meals.splice(studenthome.meals.indexOf(meal), 1, newMeal)
         if (studenthome && meal) {
             res.status(200).json({ status: 'success', result: newMeal });

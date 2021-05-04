@@ -1,7 +1,28 @@
+const assert = require("assert");
 const database = require("../dao/database");
 const logger = require('tracer').console();
 
 module.exports = {
+    validateStudenthome(req, res, next) {
+        console.log("validate movie");
+        console.log(req.body);
+        try {
+            const { name, streetName, houseNr, postalCode, residence, phoneNr } = req.body
+            assert(typeof name === 'string', 'name is missing!')
+            assert(typeof streetName === 'string', 'street name is missing!')
+            assert(typeof houseNr === 'number', 'house number is missing!')
+            assert(typeof postalCode === 'string', 'postal code is missing!')
+            assert.match(postalCode, /[1-9]{1}[0-9]{3}[A-Z]{2}/, 'postal code is invalid!')
+            assert(typeof residence === 'string', 'residence is missing!')
+            assert(typeof phoneNr === 'string', 'phone number is missing')
+            assert.match(phoneNr, /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/, 'phone number is invalid!')
+            next()
+        } catch (err) {
+            console.log("Studenthome data is invalid!: ", err.message);
+            next({ message: err.message, errorCode: 400 });
+        }
+    },
+
     create: (req, res, next) => {
         const studenthome = req.body;
     

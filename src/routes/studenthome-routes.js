@@ -8,13 +8,13 @@ const router = express.Router()
   
 // UC-201 and UC-202
 router.route('/')
-    .post(studenthomeController.create)
+    .post(studenthomeController.validateStudenthome, studenthomeController.create)
     .get(studenthomeController.getAll)
   
 // UC-203, UC-204 and UC-205
 router.route('/:homeId')
     .get(studenthomeController.getById)
-    .put(studenthomeController.update)
+    .put(studenthomeController.validateStudenthome, studenthomeController.update)
     .delete(studenthomeController.delete)
   
 // UC-206 Gebruiker toevoegen aan studentenhuis

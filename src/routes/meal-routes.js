@@ -6,12 +6,12 @@ const router = express.Router()
 
 // UC-301 and UC-303
 router.route('/:homeId/meal')
-    .post(mealController.create)
+    .post(mealController.validateMeal, mealController.create)
     .get(mealController.getAll)
 
 // UC-302, UC-304 and UC-305
 router.route('/:homeId/meal/:mealId')
-    .put(mealController.update)
+    .put(mealController.validateMeal, mealController.update)
     .get(mealController.getById)
     .delete(mealController.delete)
 
