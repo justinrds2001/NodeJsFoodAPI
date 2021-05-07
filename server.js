@@ -40,8 +40,8 @@ app.use("*", (error, req, res, next) => {
   logger.log("Errorhandler called!", error)
 
   res.status(error.errorCode).json({
-    message: "Some error occured",
-    error: error
+    error: "Some error occured",
+    message: error.message
   })
 })
 
