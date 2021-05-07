@@ -82,7 +82,7 @@ module.exports = {
             res.status(200).json({status: 'succes', result: newStudenthome})
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -99,7 +99,7 @@ module.exports = {
             res.status(400).json(response)
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -109,6 +109,6 @@ module.exports = {
         const studenthome = database.getStudentHomeById(id)
         logger.log(`id: ${id}  studenthome: ${studenthome}`)
 
-        next({error: 'addUser not implemented yet', errorCode: 501})
+        next({message: 'addUser not implemented yet', errorCode: 501})
     }
 }

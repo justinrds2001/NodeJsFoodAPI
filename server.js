@@ -32,7 +32,7 @@ app.get('/api/info', (req, res) => {
 // Catch all endpoint
 app.all("*", (req, res, next) => {
   logger.log("catch-all endpoint called")
-  next({error: 'Endpoint does not exist', errorCode: 401})
+  next({message: 'Endpoint does not exist', errorCode: 401})
 })
 
 // Error handler

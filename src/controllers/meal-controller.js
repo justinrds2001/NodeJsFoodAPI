@@ -38,7 +38,7 @@ module.exports = {
             })
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -49,7 +49,7 @@ module.exports = {
             res.status(200).json({ status: 'success', result: studenthome.meals });
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -65,7 +65,7 @@ module.exports = {
             res.status(200).json({ status: 'success', result: newMeal });
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -77,7 +77,7 @@ module.exports = {
             res.status(200).json({ status: 'success', result: meal });
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     },
 
@@ -89,7 +89,7 @@ module.exports = {
             res.status(200).json({ status: 'success', result: meal });
         } else {
             logger.log('item was not found')
-            next({error: 'item not found', errorCode: 404})
+            next({message: 'item not found', errorCode: 404})
         }
     }
 }
