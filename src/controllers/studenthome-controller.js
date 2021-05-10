@@ -4,8 +4,8 @@ const logger = require('tracer').console();
 
 module.exports = {
     validateStudenthome(req, res, next) {
-        console.log("validate movie");
-        console.log(req.body);
+        logger.log("validate movie");
+        logger.log(req.body);
         try {
             const { name, streetName, houseNr, postalCode, residence, phoneNr } = req.body
             assert(typeof name === 'string', 'name is missing!')
@@ -18,8 +18,8 @@ module.exports = {
             assert.match(phoneNr, /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/, 'phone number is invalid!')
             next()
         } catch (err) {
-            console.log("Studenthome data is invalid!: ", err.message);
-            next({ message: err.message, errorCode: 400 });
+            logger.log("Studenthome data is invalid!: ", err.message)
+            next({ message: err.message, errorCode: 400 })
         }
     },
 
@@ -29,17 +29,17 @@ module.exports = {
         database.add(studenthome, (err, result) => {
           if (err) {
             logger.log('Error adding studenthome ', studenthome);
-            next({ message: 'studenthome-controller.getAll is not implemented yet', errorCode: 501 });
+            next({ message: 'studenthome-controller.getAll is not implemented yet', errorCode: 501 })
             // of mooier: next(err), als dat err-object matcht bij onze errorhandler
           }
           if (result) {
-            res.status(200).json({ status: 'success', result: result });
+            res.status(200).json({ status: 'success', result: result })
           }
-        });
+        })
     },
 
     getAll: (req, res, next) => {
-        logger.log('studenthome-controller.getAll called');
+        logger.log('studenthome-controller.getAll called')
         database.getAll((err, result) => {
           if (err) {
             // Als err niet undefined is, dan was er blijkbaar een foutsituatie.
@@ -49,9 +49,9 @@ module.exports = {
             res.status(200).json({
               status: 'success',
               result: result,
-            });
+            })
           }
-        });
+        })
     },
 
     getById: (req, res, next) => {
@@ -75,11 +75,12 @@ module.exports = {
         const id = req.params.homeId
         let newStudenthome = req.body
         newStudenthome.id = parseInt(id)
+        newStudenthome.meals = []
         const studenthome = database.getStudentHomeById(id)
         if(studenthome) {
             logger.log('item was found')
             database.update(database.db.indexOf(studenthome), newStudenthome)
-            res.status(200).json({status: 'succes', result: newStudenthome})
+            res.status(200).json({status: 'success', result: newStudenthome})
         } else {
             logger.log('item was not found')
             next({message: 'item not found', errorCode: 404})
@@ -96,7 +97,7 @@ module.exports = {
                 status: 'success',
                 message: 'item with id: ' + id + ' was deleted!' 
             }
-            res.status(400).json(response)
+            res.status(200).json(response)
         } else {
             logger.log('item was not found')
             next({message: 'item not found', errorCode: 404})

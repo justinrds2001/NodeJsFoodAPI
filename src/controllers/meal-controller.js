@@ -59,10 +59,10 @@ module.exports = {
         const meal = database.getMealByHomeId(mealId, studenthomeId)
         const newMeal = req.body
         newMeal.id = parseInt(mealId)
-        const studenthome = database.getStudentHomeById(studenthomeId)
+        let studenthome = database.getStudentHomeById(studenthomeId)
         studenthome.meals.splice(studenthome.meals.indexOf(meal), 1, newMeal)
         if (studenthome && meal) {
-            res.status(200).json({ status: 'success', result: newMeal });
+            res.status(200).json({ status: 'success', result: studenthome });
         } else {
             logger.log('item was not found')
             next({message: 'item not found', errorCode: 404})
@@ -86,7 +86,8 @@ module.exports = {
         const mealId = req.params.mealId
         const meal = database.removeMealFromHome(mealId, studenthomeId)
         if (meal) {
-            res.status(200).json({ status: 'success', result: meal });
+            const studenthome = database.getStudentHomeById(studenthomeId)
+            res.status(200).json({ status: 'success', result: studenthome });
         } else {
             logger.log('item was not found')
             next({message: 'item not found', errorCode: 404})
