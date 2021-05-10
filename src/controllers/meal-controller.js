@@ -4,8 +4,8 @@ const assert = require("assert");
 
 module.exports = {
     validateMeal(req, res, next) {
-        console.log("validate movie");
-        console.log(req.body);
+        logger.log("validate movie");
+        logger.log(req.body);
         try {
             const { name, description, addedAt, offeredAt, price, allergyInfo, ingredients} = req.body
             assert(typeof name === 'string', 'name is missing!')
@@ -17,7 +17,7 @@ module.exports = {
             assert(typeof ingredients === 'object', 'ingredients are missing!')
             next()
         } catch (err) {
-            console.log("Meal data is invalid!: ", err.message);
+            logger.log("Meal data is invalid!: ", err.message);
             next({ message: err.message, errorCode: 400 });
         }
     },

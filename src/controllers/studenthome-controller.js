@@ -3,6 +3,16 @@ const database = require("../dao/database");
 const logger = require('tracer').console();
 
 module.exports = {
+    validateStudenthomePlace(req, res, next) {
+        try {
+            assert(!database.homeDoesAlreadyExist(req.body), 'studenthome already exists')
+            next()
+        } catch (err) {
+            logger.log("Studenthome already exists!: ", err.message)
+            next({ message: err.message, errorCode: 400 })
+        }
+    },
+
     validateStudenthome(req, res, next) {
         logger.log("validate movie");
         logger.log(req.body);

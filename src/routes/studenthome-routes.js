@@ -8,7 +8,7 @@ const router = express.Router()
   
 // UC-201 and UC-202
 router.route('/')
-    .post(studenthomeController.validateStudenthome, studenthomeController.create)
+    .post(studenthomeController.validateStudenthomePlace, studenthomeController.validateStudenthome, studenthomeController.create)
     .get(studenthomeController.getAll)
   
 // UC-203, UC-204 and UC-205

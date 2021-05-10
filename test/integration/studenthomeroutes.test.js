@@ -63,6 +63,7 @@ describe('Studenthome', () => {
                 })
         })
         it('TC-201-2 should return valid error when postal code is invalid', done => {
+            
             chai
                 .request(server)
                 .post('/api/studenthome')
@@ -110,16 +111,48 @@ describe('Studenthome', () => {
                     done()
                 })
         })
+        it('TC-201-4 should return valid error when studenthome already exists', done => {
+            database.db = [{
+                name: 'home1',
+                streetName: 'korvelseweg',
+                houseNr: 1,
+                phoneNr: '0612345678',
+                postalCode: '1234JL',
+                residence: 'Tilburg'
+            }]
+            chai
+                .request(server)
+                .post('/api/studenthome')
+                .send({
+                    name: 'home2',
+                    streetName: 'korvelseweg',
+                    houseNr: 1,
+                    phoneNr: '0612345678',
+                    postalCode: '1234JL',
+                    residence: 'Tilburg'
+                }) // same adress as home1
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(400)
+                    res.should.be.an('object')
+                    res.body.should.be.an('object').that.has.all.keys('error', 'message')
+
+                    let { error, message } = res.body
+                    error.should.be.a('string').that.equals('Some error occured')
+                    message.should.be.a('string').that.equals('studenthome already exists')
+                    done()
+                })
+        })
         it('TC-201-6 should return JSON object of the added studenthome', done => {
             chai
             .request(server)
             .post('/api/studenthome')
             .send({
                 name: 'home1',
-                streetName: 'korvelseweg',
+                streetName: 'testweg',
                 houseNr: 1,
                 phoneNr: '0612345678',
-                postalCode: '1234JL',
+                postalCode: '1234JD',
                 residence: 'Tilburg'
             }) // studenthome data is valid
             .end((err, res) => {

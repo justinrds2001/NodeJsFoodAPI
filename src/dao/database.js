@@ -93,6 +93,16 @@ let database = {
                 foundItem = meal
             }
         })
+    },
+
+    homeDoesAlreadyExist(studenthome) {
+        alreadyExists = false
+        database.db.forEach(s => {
+            if(s.postalCode === studenthome.postalCode && s.houseNr === studenthome.houseNr && s.streetName === studenthome.streetName) {
+                alreadyExists = true
+            }
+        })
+        return alreadyExists
     }
 }
 
