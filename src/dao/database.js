@@ -46,12 +46,10 @@ let database = {
     },
 
     getStudentHomeById(id) {
-        let isFound = false
-        let foundItem = undefined
+        let foundItem
         this.db.forEach((studentHome) => {
                 if(id == studentHome.id) {
                     logger.log('item was found')
-                    isFound = true
                     foundItem = studentHome
                 }
         })
