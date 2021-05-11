@@ -66,7 +66,7 @@ let database = {
 
     getMealByHomeId(mealId, homeId) {
         let studenthome = this.getStudentHomeById(homeId)
-        let foundItem = undefined
+        let foundItem
         studenthome.meals.forEach((meal) => {
             if (mealId == meal.id){
                 foundItem = meal
@@ -86,17 +86,8 @@ let database = {
         }
     },
 
-    getMealByMealId(mealId, studenthome) {
-        let foundItem = undefined
-        studenthome.meals.forEach((meal) => {
-            if (mealId == meal.id){
-                foundItem = meal
-            }
-        })
-    },
-
     homeDoesAlreadyExist(studenthome) {
-        alreadyExists = false
+        let alreadyExists = false
         database.db.forEach(s => {
             if(s.postalCode === studenthome.postalCode && s.houseNr === studenthome.houseNr && s.streetName === studenthome.streetName) {
                 alreadyExists = true
