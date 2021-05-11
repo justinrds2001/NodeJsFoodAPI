@@ -30,9 +30,11 @@ variables:
 testing:
   stage: test
   image: node:latest
+  before_script:
+    # Install the node packages that our server needs
+    - npm i --no-optional
   script:
-    - npm i mocha
-    - npm run test
+    - npm run coverage
   only:
     - master
 #
