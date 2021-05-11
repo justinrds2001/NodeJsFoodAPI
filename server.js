@@ -24,7 +24,7 @@ app.get('/api/info', (req, res) => {
     name: 'Justin Rodrigues da Silva',
     studentNr: 2144403,
     description: 'This is a api that returns information about studenthomes and meals',
-    sonarQubeUrl:''
+    sonarQubeUrl:'https://sonarqube.avans-informatica-breda.nl/dashboard?id=programmeren-4-samen-eten'
   }
   res.status(200).json(info)
 })
