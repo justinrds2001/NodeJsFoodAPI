@@ -1,31 +1,33 @@
 const assert = require("assert");
-const database = require("../dao/database");
+const database = require("../config/database");
+const config = require('../config/config');
+const pool = require("../config/database");
 const logger = require('tracer').console();
 
 module.exports = {
-    validateStudenthomePlace(req, res, next) {
-        try {
-            assert(!database.homeDoesAlreadyExist(req.body), 'studenthome already exists')
-            next()
-        } catch (err) {
-            logger.log("Studenthome already exists!: ", err.message)
-            next({ message: err.message, errorCode: 400 })
-        }
-    },
+    // validateStudenthomePlace(req, res, next) {
+    //     try {
+    //         assert(!database.homeDoesAlreadyExist(req.body), 'studenthome already exists')
+    //         next()
+    //     } catch (err) {
+    //         logger.log("Studenthome already exists!: ", err.message)
+    //         next({ message: err.message, errorCode: 400 })
+    //     }
+    // },
 
-    validateStudenthome(req, res, next) {
+    validateStudenthome: (req, res, next) => {
         logger.log("validate movie");
         logger.log(req.body);
         try {
-            const { name, streetName, houseNr, postalCode, residence, phoneNr } = req.body
-            assert(typeof name === 'string', 'name is missing!')
-            assert(typeof streetName === 'string', 'street name is missing!')
-            assert(typeof houseNr === 'number', 'house number is missing!')
-            assert(typeof postalCode === 'string', 'postal code is missing!')
-            assert.match(postalCode, /[1-9]{1}[0-9]{3}[A-Z]{2}/, 'postal code is invalid!')
-            assert(typeof residence === 'string', 'residence is missing!')
-            assert(typeof phoneNr === 'string', 'phone number is missing')
-            assert.match(phoneNr, /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/, 'phone number is invalid!')
+            const { Name, Address, House_Nr, Postal_Code, Telephone, City} = req.body
+            assert(typeof Name === 'string', 'name is missing!')
+            assert(typeof Address === 'string', 'street name is missing!')
+            assert(typeof House_Nr === 'number', 'house number is missing!')
+            assert(typeof Postal_Code === 'string', 'postal code is missing!')
+            assert.match(Postal_Code, /[1-9]{1}[0-9]{3}[A-Z]{2}/, 'postal code is invalid!')
+            assert(typeof Telephone === 'string', 'phone number is missing')
+            assert.match(Telephone, /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/, 'phone number is invalid!')
+            assert(typeof City === 'string', 'city is missing!')
             next()
         } catch (err) {
             logger.log("Studenthome data is invalid!: ", err.message)
@@ -34,84 +36,204 @@ module.exports = {
     },
 
     create: (req, res, next) => {
-        const studenthome = req.body;
-    
-        database.add(studenthome, (err, result) => {
-          if (err) {
-            logger.log('Error adding studenthome ', studenthome);
-            next({ message: 'studenthome-controller.getAll is not implemented yet', errorCode: 501 })
-            // of mooier: next(err), als dat err-object matcht bij onze errorhandler
-          }
-          if (result) {
-            res.status(200).json({ status: 'success', result: result })
-          }
+        logger.info('create called')
+        const studenthome = req.body
+        let {Name, Address, House_Nr, Postal_Code, Telephone, City} = studenthome
+        const UserID = 1
+
+        let values = [ Name, Address, House_Nr, UserID, Postal_Code, Telephone, City ]
+        logger.trace('movie =', studenthome)
+
+        let sqlQuery = 'insert into studenthome(Name, Address, House_Nr, UserID, Postal_Code, Telephone, City) ' +
+        'values(?, ?, ?, ?, ?, ?, ?)'
+        logger.debug('create', 'sqlQuery =', sqlQuery)
+
+        pool.getConnection((err, connection) => {
+            if (err) {
+                logger.log(err)
+                next({ message: 'connection failed', errorCode: 500 })
+            }
+            if (connection) {
+                connection.query(sqlQuery, values, (err, results, fields) => {
+                    connection.release()
+                    if (err) {
+                        next({ message: 'create failed', errorCode: 500 })
+                    }
+                    if (results) {
+                        logger.trace('results: ', results)
+                        res.status(200).json({
+                            status: 'successful',
+                            result: studenthome
+                        })
+                    }
+                })
+            }
         })
     },
 
     getAll: (req, res, next) => {
-        logger.log('studenthome-controller.getAll called')
-        database.getAll((err, result) => {
-          if (err) {
-            // Als err niet undefined is, dan was er blijkbaar een foutsituatie.
-            next(err);
-          }
-          if (result) {
-            res.status(200).json({
-              status: 'success',
-              result: result,
-            })
-          }
+        logger.trace('getAll called')
+
+        let sqlQuery = 
+            'select * ' +
+            'from studenthome'
+
+        // filtering by query params
+        const queryParams = Object.entries(req.query)
+        logger.info('queryParams:', queryParams)
+        if (queryParams.length > 0) {
+            let queryString = queryParams
+              .map((param) => {
+                // map maakt een nieuwe waarde van gegeven invoer; hier een string van twee arrayvalues.
+                return `${param[0]} = '${param[1]}'`
+              })
+              .reduce((a, b) => {
+                // reduce 'reduceert' twee opeenvolgende waarden tot één eindwaarde.
+                return `${a} AND ${b}`
+              })
+            logger.info('queryString:', queryString)
+            sqlQuery += ` where ${queryString};`
+        }
+        logger.debug('getAll', 'sqlQuery =', sqlQuery)
+
+        pool.getConnection((err, connection) => {
+            if (err) {
+                logger.log(err)
+                next({ message: 'connection failed', errorCode: 500 })
+            }
+            if (connection) {
+                connection.query(sqlQuery, (err, results, fields) => {
+                    connection.release()
+                    if (err) {
+                        next({ message: 'GetAll failed', errorCode: 500 })
+                    }
+                    if (results) {
+                        logger.trace('results: ', results)
+                        // const mappedResults = results.map( item =>  {
+                        //     return {
+                        //         ...item
+                        //     }
+                        // })
+                        res.status(200).json({
+                            status: 'successful',
+                            result: results
+                        })
+                    } 
+                })
+            }
         })
     },
 
     getById: (req, res, next) => {
-        logger.log("studenthome-controller.getById called");
+        logger.trace('getById called')
 
-        const studenthomeId = req.params.homeId
-        database.getById(studenthomeId, (err, result) => {
+        const sqlStudenthomeQuery = 'select * from studenthome where ID = ?'
+        const sqlMealQuery = 'select ID, Name from meal where StudenthomeID = ?'
+        const studenthomeID = req.params.homeId
+
+        let studenthome
+
+        pool.getConnection((err, connection) => {
             if (err) {
-                next({ message: `HomeId ${studenthomeId} not found`, errorCode: 404 })
+                logger.log(err)
+                next({ message: 'connection failed', errorCode: 500 })
             }
-            if (result) {
-                res.status(200).json({
-                    status: 'success',
-                    result:result
+            if (connection) {
+                connection.query(sqlStudenthomeQuery, studenthomeID, (err, results, fields) => {
+                    if (err) {
+                        next({ message: 'getById failed', errorCode: 500 })
+                    }
+                    if (results) {
+                        logger.trace('results: ', results)
+                        if (results.length === 0) {
+                            next({message: 'id was not found', errorCode: 404})
+                        } else {
+                            studenthome = results[0]
+
+                            connection.query(sqlMealQuery, studenthomeID, (err, results, fields) => {
+                                if (err) {
+                                    next({ message: 'getById failed', errorCode: 500 })
+                                }
+                                if (results) {
+                                    logger.trace('results: ', results)
+                                    studenthome.Meals = results
+                                    res.status(200).json({status: 'successful', result: studenthome})
+                                }
+                            })
+                        }
+                    }
                 })
             }
         })
     },
 
     update: (req, res, next) => {
-        const id = req.params.homeId
-        let newStudenthome = req.body
-        newStudenthome.id = parseInt(id)
-        newStudenthome.meals = []
-        const studenthome = database.getStudentHomeById(id)
-        if(studenthome) {
-            logger.log('item was found')
-            database.update(database.db.indexOf(studenthome), newStudenthome)
-            res.status(200).json({status: 'success', result: newStudenthome})
-        } else {
-            logger.log('item was not found')
-            next({message: 'item not found', errorCode: 404})
-        }
+        const studenthomeID = req.params.homeId
+        let {Name, Address, House_Nr, Postal_Code, Telephone, City} = req.body
+        let values = [ Name, Address, House_Nr, Postal_Code, Telephone, City , studenthomeID]
+        const sqlQuery = 'update studenthome '+
+        'set Name = ?, Address = ?, House_Nr = ?, Postal_Code = ?, Telephone = ?, City = ? ' + 
+        'where ID = ?'
+
+        pool.getConnection((err, connection) => {
+            if (err) {
+                logger.log(err)
+                next({ message: 'connection failed', errorCode: 500 })
+            }
+            if (connection) {
+                connection.query(sqlQuery, values, (err, results) => {
+                    if (err) {
+                        next({ message: 'update failed', errorCode: 500 })
+                    }
+                    if (results) {
+                        let studenthome = req.body
+                        studenthome.ID = parseInt(studenthomeID)
+                        res.status(200).json({
+                            status: 'successful',
+                            editedItem: studenthome
+                        })
+                    }
+                })
+            }
+        })
     },
 
     delete: (req, res, next) => {
-        const id = req.params.homeId
-        const studenthome = database.getStudentHomeById(id)
-        if(studenthome) {
-            logger.log('item was found')
-            database.remove(database.db.indexOf(studenthome))
-            const response = {
-                status: 'success',
-                message: 'item with id: ' + id + ' was deleted!' 
+        logger.trace('delete called')
+        const studenthomeID = req.params.homeId
+        const sqlDeleteQuery = 'delete from studenthome where ID = ?'
+        const sqlInfoQuery = 'select * from studenthome where ID = ?'
+        let studenthome
+
+        pool.getConnection((err, connection) => {
+            if (err) {
+                logger.log(err)
+                next({ message: 'connection failed', errorCode: 500 })
             }
-            res.status(200).json(response)
-        } else {
-            logger.log('item was not found')
-            next({message: 'item not found', errorCode: 404})
-        }
+            if (connection) {
+                connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
+                    if (err) {
+                        next({ message: 'getById failed', errorCode: 500 })
+                    }
+                    if (results) {
+                        logger.trace('results: ', results)
+                        studenthome = results[0]
+
+                        connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
+                            if (err) {
+                                next({ message: 'delete failed', errorCode: 500 })
+                            }
+                            if (results) {
+                                res.status(200).json({
+                                    status: 'successful',
+                                    deletedItem: studenthome
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
     },
 
     addUser: (req, res, next) => {

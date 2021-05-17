@@ -4,9 +4,26 @@ const port = process.env.PORT || 3000
 
 const studenthomeRoutes = require('./src/routes/studenthome-routes')
 const mealRoutes = require('./src/routes/meal-routes')
+const authenticationRoutes = require('./src/routes/authentication-routes')
+
 
 const logger = require('tracer').console()
 app.use(express.json()) // for parsing application/json
+
+// Add CORS headers
+app.use( (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, OPTIONS, PUT, PATCH, DELETE'
+  )
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-Requested-With,content-type,authorization'
+  )
+  res.setHeader('Access-Control-Allow-Credentials', true)
+  next()
+})
 
 // logger
 app.all("*", (req, res, next) => {
@@ -17,6 +34,7 @@ app.all("*", (req, res, next) => {
 // Install the routes
 app.use('/api/studenthome', studenthomeRoutes)
 app.use('/api/studenthome', mealRoutes)
+app.use('/api', authenticationRoutes)
 
 // UC-103 Systeeminfo opvragen
 app.get('/api/info', (req, res) => {

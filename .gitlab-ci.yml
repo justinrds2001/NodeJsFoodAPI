@@ -9,6 +9,7 @@
 
 stages:
   - test
+  - analysis
   - production
 
 #
@@ -30,14 +31,33 @@ variables:
 testing:
   stage: test
   image: node:latest
+  services:
+    - mysql:5.6
+  variables:
+    NODE_ENV: development
+    DB_USER: root
+    DB_DATABASE: ${MYSQL_DATABASE}
+    DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    DB_HOST: mysql
   before_script:
+    # Install the database service into the node:latest image
+    - apt-get update && apt-get install -y git curl libmcrypt-dev default-mysql-client
+    - mysql --version
+    # Create tables and fill our database by inserting your *-data.sql script
+    - mysql --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE} < movies-data.sql
+    - mysqlshow --host=mysql --user="${DB_USER}" --password="${DB_PASSWORD}" ${DB_DATABASE}
     # Install the node packages that our server needs
     - npm i --no-optional
   script:
     - npm run coverage
+
+  Sonar analysis:
+  stage: analysis
+  image: node:latest
+  before_script:
+    - npm install --no-optional
+  script:
     - npm run sonar
-  only:
-    - master
 #
 # Deploy to Heroku
 # DPL is a deploy tool made for continuous deployment that’s developed and used

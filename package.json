@@ -7,7 +7,7 @@
     "test": "mocha -reporter spec test/**/*.test.js --exit",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "coverage": "nyc --reporter=lcov npm run test", 
+    "coverage": "nyc --reporter=lcov npm run test",
     "sonar": "sonar-scanner"
   },
   "keywords": [
@@ -19,7 +19,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "mocha": "^8.3.2",
+    "mysql": "^2.18.1",
     "tracer": "^1.1.4"
   },
   "devDependencies": {
