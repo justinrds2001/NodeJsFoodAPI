@@ -8,7 +8,6 @@ router.post('/login',
     authenticatorController.validateLogin, 
     authenticatorController.login)
 router.post('/register',
-    emailValidator.
     authenticatorController.validateRegister,
     authenticatorController.register
 )
