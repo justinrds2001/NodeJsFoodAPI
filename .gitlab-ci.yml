@@ -50,6 +50,7 @@ testing:
     - npm i --no-optional
   script:
     - npm run coverage
+    - npm run sonar
 
   # Sonar analysis:
   # stage: analysis
