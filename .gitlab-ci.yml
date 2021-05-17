@@ -51,13 +51,14 @@ testing:
   script:
     - npm run coverage
 
-  Sonar analysis:
-  stage: analysis
-  image: node:latest
-  before_script:
-    - npm install --no-optional
-  script:
-    - npm run sonar
+  # Sonar analysis:
+  # stage: analysis
+  # image: node:latest
+  # before_script:
+  #   - npm install --no-optional
+  # script:
+  #   - npm run sonar
+
 #
 # Deploy to Heroku
 # DPL is a deploy tool made for continuous deployment that’s developed and used
