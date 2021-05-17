@@ -30,7 +30,12 @@ module.exports = {
         const meal = req.body
         let {Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants} = meal
         const studenthomeID = req.params.homeId
-        const UserID = 1
+        const authHeader = req.headers.authorization
+        const token = authHeader.substring(7, authHeader.length)
+        const decoded = jwt.verify(token, 'secret')
+        const UserID = decoded.id
+
+        logger.log('UserID: '+ UserID)
 
         let values = [Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, UserID, studenthomeID, MaxParticipants]
         logger.trace('movie =', meal)

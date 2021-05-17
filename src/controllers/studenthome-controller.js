@@ -1,8 +1,10 @@
 const assert = require("assert");
+const express = require('express')
 const database = require("../config/database");
 const config = require('../config/config');
 const pool = require("../config/database");
 const logger = require('tracer').console();
+const jwt = require('jsonwebtoken')
 
 module.exports = {
     // validateStudenthomePlace(req, res, next) {
@@ -39,7 +41,12 @@ module.exports = {
         logger.info('create called')
         const studenthome = req.body
         let {Name, Address, House_Nr, Postal_Code, Telephone, City} = studenthome
-        const UserID = 1
+        const authHeader = req.headers.authorization
+        const token = authHeader.substring(7, authHeader.length)
+        const decoded = jwt.verify(token, 'secret')
+        const UserID = decoded.id
+
+        logger.log('UserID: '+ UserID)
 
         let values = [ Name, Address, House_Nr, UserID, Postal_Code, Telephone, City ]
         logger.trace('movie =', studenthome)
