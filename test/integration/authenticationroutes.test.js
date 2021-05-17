@@ -68,24 +68,24 @@ describe('authentication', () => {
 
         it('TC-101-5 should return username and generated token', done => {
             chai
-            .request(server)
-            .post('/api/register')
-            .send({
-                First_Name: "test",
-                Last_Name: "jasgfoauig",
-                Email: "aififv@jsbb.asug",
-                Student_Number: "123456",
-                Password: "iueqgf"
-            })
-            .end((err, res) => {
-                assert.ifError(err)
-                res.should.have.status(200)
-                res.should.be.an('object')
-                res.body.should.be.an('object').that.has.all.keys('id', 'First_Name', 'Last_Name', 'Email', 'Token')
-                let { Token } = res.body
-                Token.should.be.a('string')
-                done()
-            })
+                .request(server)
+                .post('/api/register')
+                .send({
+                    First_Name: "test",
+                    Last_Name: "jasgfoauig",
+                    Email: "aififv@jsbb.asug",
+                    Student_Number: "123456",
+                    Password: "iueqgf"
+                })
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(200)
+                    res.should.be.an('object')
+                    res.body.should.be.an('object').that.has.all.keys('id', 'First_Name', 'Last_Name', 'Email', 'Token')
+                    let { Token } = res.body
+                    Token.should.be.a('string')
+                    done()
+                })
         })
     })
 })

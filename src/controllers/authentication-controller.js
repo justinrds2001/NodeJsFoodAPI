@@ -75,7 +75,6 @@ module.exports = {
             typeof Password === 'string','password must be a string.')
           next()
         } catch (err) {
-          res
           logger.log("User data is invalid!: ", err.message);
           next({ message: err.message, errorCode: 400 });
         }

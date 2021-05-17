@@ -95,7 +95,7 @@ module.exports = {
         const { Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants} = req.body
         const values = [Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants, mealId]
         const sqlUpdateQuery = 'update meal ' +
-        'set Name = ?, Description = ?, Ingredients = ?, Allergies = ?, CreatedOn = ?, OfferedOn = ?, Price = ?, MaxParticipants = ?'
+        'set Name = ?, Description = ?, Ingredients = ?, Allergies = ?, CreatedOn = ?, OfferedOn = ?, Price = ?, MaxParticipants = ? ' +
         'where ID = ?'
         const sqlInfoQuery = 'select * from studenthome where ID = ?'
 
@@ -154,10 +154,10 @@ module.exports = {
 
     delete: (req, res, next) => {
         logger.trace('delete called')
-        const studenthomeID = req.params.homeId
-        const sqlDeleteQuery = 'delete from studenthome where ID = ?'
-        const sqlInfoQuery = 'select * from studenthome where ID = ?'
-        let studenthome
+        const mealID = req.params.mealId
+        const sqlDeleteQuery = 'delete from meal where ID = ?'
+        const sqlInfoQuery = 'select * from meal where ID = ?'
+        let meal
 
         pool.getConnection((err, connection) => {
             if (err) {
@@ -165,22 +165,22 @@ module.exports = {
                 next({ message: 'connection failed', errorCode: 500 })
             }
             if (connection) {
-                connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
+                connection.query(sqlInfoQuery, mealID, (err, results, fields) => {
                     if (err) {
                         next({ message: 'getById failed', errorCode: 500 })
                     }
                     if (results) {
                         logger.trace('results: ', results)
-                        studenthome = results[0]
+                        meal = results[0]
 
-                        connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
+                        connection.query(sqlDeleteQuery, mealID, (err, results, fields) => {
                             if (err) {
                                 next({ message: 'delete failed', errorCode: 500 })
                             }
                             if (results) {
                                 res.status(200).json({
                                     status: 'successful',
-                                    deletedItem: studenthome
+                                    deletedItem: meal
                                 })
                             }
                         })
