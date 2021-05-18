@@ -7,20 +7,20 @@ chai.should()
 chai.use(chaiHttp)
 const logger = require('tracer').console()
 
-const CLEAR_DB = 'DELETE IGNORE FROM `user`'
+const CLEAR_DB = 'DELETE IGNORE FROM user'
 
 describe('authentication', () => {
     before((done) => {
         // console.log('beforeEach')
         pool.query(CLEAR_DB, (err, rows, fields) => {
           if (err) {
-            console.log(`beforeEach CLEAR error: ${err}`)
+            logger.error(`beforeEach CLEAR error: ${err}`)
             done(err)
           } else {
             done()
           }
         })
-      })
+    })
 
     describe('UC-101 register', () => {
         it('TC101-1 should return valid error when required field is missing', done => {

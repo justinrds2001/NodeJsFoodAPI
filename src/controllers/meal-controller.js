@@ -31,6 +31,8 @@ module.exports = {
         let {Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants} = meal
         const studenthomeID = req.params.homeId
         const authHeader = req.headers.authorization
+
+        // Retrieving UserID from json webtoken
         const token = authHeader.substring(7, authHeader.length)
         const decoded = jwt.verify(token, 'secret')
         const UserID = decoded.id
@@ -95,14 +97,23 @@ module.exports = {
     },
 
     update: (req, res, next) => {
-        const studenthomeId = req.params.homeId
+        const studenthomeID = req.params.homeId
         const mealId = req.params.mealId
         const { Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants} = req.body
         const values = [Name, Description, Ingredients, Allergies, CreatedOn, OfferedOn, Price, MaxParticipants, mealId]
+
+        const authHeader = req.headers.authorization
+
+        // Retrieving UserID from json webtoken
+        const token = authHeader.substring(7, authHeader.length)
+        const decoded = jwt.verify(token, 'secret')
+        const userID = decoded.id
+
+        const sqlStudenthomeQuery = 'select UserID from studenthome where ID = ' + studenthomeID
+
         const sqlUpdateQuery = 'update meal ' +
         'set Name = ?, Description = ?, Ingredients = ?, Allergies = ?, CreatedOn = ?, OfferedOn = ?, Price = ?, MaxParticipants = ? ' +
         'where ID = ?'
-        const sqlInfoQuery = 'select * from studenthome where ID = ?'
 
         pool.getConnection((err, connection) => {
             if (err) {
@@ -110,22 +121,30 @@ module.exports = {
                 next({ message: 'connection failed', errorCode: 500 })
             }
             if (connection) {
-                connection.query(sqlUpdateQuery, values, (err, results) => {
-                    if (err) {
+                connection.query(sqlStudenthomeQuery, (error, results) => {
+                    if (error) {
                         next({ message: 'update failed', errorCode: 500 })
                     }
-                    if (results) {
-                        connection.query(sqlInfoQuery, studenthomeId, (err, results) => {
-                            if (err) {
-                                next({ message: 'update failed', errorCode: 500 })
-                            }
-                            if (results) {
-                                res.status(200).json({
-                                    status: 'successful',
-                                    editedItem: results[0]
-                                })
-                            }
-                        })
+
+                    if (results){
+                        if (results[0].UserID == parseInt(userID)){
+                            connection.query(sqlUpdateQuery, values, (error, updateResults) => {
+                                connection.release()
+                                if (error) {
+                                    next({ message: 'update failed', errorCode: 500 })
+                                }
+
+                                if (updateResults) {
+                                    res.status(200).json({
+                                        status: 'successful',
+                                        editedItem: results[0]
+                                    })
+                                }
+
+                            })
+                        } else{
+                            next({ message: 'wrong userID / not authorized', errorCode: 400 }) 
+                        }
                     }
                 })
             }

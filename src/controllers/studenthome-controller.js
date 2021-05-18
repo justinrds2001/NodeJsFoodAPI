@@ -42,6 +42,8 @@ module.exports = {
         const studenthome = req.body
         let {Name, Address, House_Nr, Postal_Code, Telephone, City} = studenthome
         const authHeader = req.headers.authorization
+
+        // Retrieving UserID from json webtoken
         const token = authHeader.substring(7, authHeader.length)
         const decoded = jwt.verify(token, 'secret')
         const UserID = decoded.id
@@ -64,10 +66,11 @@ module.exports = {
                 connection.query(sqlQuery, values, (err, results, fields) => {
                     connection.release()
                     if (err) {
-                        next({ message: 'create failed', errorCode: 500 })
+                        next({ message: 'studenthome is invalid or already exists', errorCode: 400 })
                     }
                     if (results) {
                         logger.trace('results: ', results)
+                        studenthome.ID = results.insertId
                         res.status(200).json({
                             status: 'successful',
                             result: studenthome
@@ -177,29 +180,53 @@ module.exports = {
     update: (req, res, next) => {
         const studenthomeID = req.params.homeId
         let {Name, Address, House_Nr, Postal_Code, Telephone, City} = req.body
-        let values = [ Name, Address, House_Nr, Postal_Code, Telephone, City , studenthomeID]
-        const sqlQuery = 'update studenthome '+
-        'set Name = ?, Address = ?, House_Nr = ?, Postal_Code = ?, Telephone = ?, City = ? ' + 
-        'where ID = ?'
+        let values = [Name, Address, House_Nr, Postal_Code, Telephone, City, studenthomeID]
+
+        const authHeader = req.headers.authorization
+
+        // Retrieving UserID from json webtoken
+        const token = authHeader.substring(7, authHeader.length)
+        const decoded = jwt.verify(token, 'secret')
+        const userID = decoded.id
+
+        const sqlStudenthomeQuery = 'select UserID from studenthome where ID = ' + studenthomeID
+
+        const sqlQuery = 'update studenthome ' +
+            'set Name = ?, Address = ?, House_Nr = ?, Postal_Code = ?, Telephone = ?, City = ? ' +
+            'where ID = ?'
+
 
         pool.getConnection((err, connection) => {
-            if (err) {
+            if(err){
                 logger.log(err)
-                next({ message: 'connection failed', errorCode: 500 })
+                next ({message: 'update failed', errorCode: 500 })
             }
-            if (connection) {
-                connection.query(sqlQuery, values, (err, results) => {
-                    if (err) {
-                        next({ message: 'update failed', errorCode: 500 })
+
+            if (connection){
+                connection.query(sqlStudenthomeQuery, values, (error, results) => {
+                    if (error) {
+                        next({ message: 'update failed', errorCode: 500 }) 
                     }
-                    if (results) {
-                        let studenthome = req.body
-                        studenthome.ID = parseInt(studenthomeID)
-                        res.status(200).json({
-                            status: 'successful',
-                            editedItem: studenthome
-                        })
-                    }
+                    if (results){
+                        if (results[0].UserID == userID) {
+                            connection.query(sqlQuery, values, (error, results) => {
+                                connection.release()
+                                if (error) {    
+                                    next({ message: 'update failed', errorCode: 500 })
+                                }
+                                if (results){
+                                    let studenthome = req.body
+                                    studenthome.ID = parseInt(studenthomeID)
+                                    res.status(200).json({
+                                        status: 'successfull',
+                                        editedItem: studenthome
+                                    })
+                                }
+                            })
+                        } else{
+                            next({ message: 'wrong userID / not authorized', errorCode: 400 }) 
+                        }
+                    } 
                 })
             }
         })
@@ -225,7 +252,6 @@ module.exports = {
                     if (results) {
                         logger.trace('results: ', results)
                         studenthome = results[0]
-
                         connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
                             if (err) {
                                 next({ message: 'delete failed', errorCode: 500 })
