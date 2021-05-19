@@ -27,7 +27,7 @@ module.exports = {
             assert(typeof House_Nr === 'number', 'house number is missing!')
             assert(typeof Postal_Code === 'string', 'postal code is missing!')
             assert.match(Postal_Code, /[1-9]{1}[0-9]{3}[A-Z]{2}/, 'postal code is invalid!')
-            assert(typeof Telephone === 'string', 'phone number is missing')
+            assert(typeof Telephone === 'string', 'phone number is missing!')
             assert.match(Telephone, /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/, 'phone number is invalid!')
             assert(typeof City === 'string', 'city is missing!')
             next()
@@ -208,23 +208,27 @@ module.exports = {
                         next({ message: 'update failed', errorCode: 500 }) 
                     }
                     if (results){
-                        if (results[0].UserID == userID) {
-                            connection.query(sqlQuery, values, (error, results) => {
-                                connection.release()
-                                if (error) {    
-                                    next({ message: 'update failed', errorCode: 500 })
-                                }
-                                if (results){
-                                    let studenthome = req.body
-                                    studenthome.ID = parseInt(studenthomeID)
-                                    res.status(200).json({
-                                        status: 'successfull',
-                                        editedItem: studenthome
-                                    })
-                                }
-                            })
-                        } else{
-                            next({ message: 'wrong userID / not authorized', errorCode: 400 }) 
+                        if (results[0]) {
+                            if (results[0].UserID == userID) {
+                                connection.query(sqlQuery, values, (error, results) => {
+                                    connection.release()
+                                    if (error) {    
+                                        next({ message: 'update failed', errorCode: 500 })
+                                    }
+                                    if (results){
+                                        let studenthome = req.body
+                                        studenthome.ID = parseInt(studenthomeID)
+                                        res.status(200).json({
+                                            status: 'successfull',
+                                            editedItem: studenthome
+                                        })
+                                    }
+                                })
+                            } else{
+                                next({ message: 'wrong userID / not authorized', errorCode: 400 }) 
+                            }
+                        } else {
+                            next({ message: 'home id not found!', errorCode: 400 })
                         }
                     } 
                 })

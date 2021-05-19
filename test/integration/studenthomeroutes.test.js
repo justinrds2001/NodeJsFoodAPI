@@ -202,6 +202,39 @@ describe('UC-201 create studenthome', () => {
         })
     })
 
+    it('TC-201-5 should return valid error when user is not logged in', done => {
+      pool.query(INSERT_USER, (err, rows, fields) => {
+          if (err) {
+            logger.error(`before INSERT_USER: ${err}`)
+          }
+          if (rows) {
+            logger.debug(`before INSERT_USER done`)
+          }
+      })
+      // no token is given 
+      chai
+      .request(server)
+      .post('/api/studenthome')
+      .send({
+          Name: 'home1',
+          Address: 'korvelseweg',
+          House_Nr: 2,
+          Postal_Code: '1234JL',
+          Telephone: '0612345678',
+          City: 'Tilburg'
+      }) // correct data
+      .end((err, res) => {
+          assert.ifError(err)
+          res.should.have.status(401)
+          res.should.be.an('object')
+          res.body.should.be.an('object').that.has.all.keys('error', 'message')
+          let { error, message } = res.body
+          error.should.be.a('string').that.equals('Some error occured')
+          message.should.be.a('string').that.equals('not authorized')
+          done()
+      })
+  })
+
     it('TC-201-6 should return JSON object of the added studenthome', done => {
         pool.query(INSERT_USER, (err, rows, fields) => {
             if (err) {
@@ -239,359 +272,218 @@ describe('UC-201 create studenthome', () => {
     })
 })
 
-// describe('Studenthome', () => {
-    // describe('create', () => {
-    //     // beforeEach(done => {
-    //     //     logger.log("database wiped")
-    //     //     database.db = []
-    //     //     done()
-    //     // })
+describe('UC-202 get all studenthomes', () => {
+    it('TC-202-1 should return empty list', done => {
+        chai
+            .request(server)
+            .get('/api/studenthome')
+            .end((err, res) => {
+                assert.ifError(err)
+                res.should.have.status(200)
+                res.should.be.an('object')
+                res.body.should.be.an('object').that.has.all.keys('status', 'result')
+                let { status, result } = res.body
+                status.should.be.a('string').that.equals('successful')
+                result.should.be.an('array')
+                result.length.should.equal(0)
+                done()
+            })
+    })
 
-    //     it('TC-201-1 should return valid error when required value is not present', done => {
-    //         chai
-    //             .request(server)
-    //             .post('/api/studenthome')
-    //             .send({
-    //                 name: 'home1',
-    //                 streetName: 'korvelseweg',
-    //                 houseNr: 1,
-    //                 phoneNr: '0612345678',
-    //                 postalCode: '1234JL'
-    //             }) // residence is missing
-    //             .end((err, res) => {
-    //                 assert.ifError(err)
-    //                 res.should.have.status(400)
-    //                 res.should.be.an('object')
-    //                 res.body.should.be.an('object').that.has.all.keys('error', 'message')
+    it('TC-202-2 should return list of 2 items', done => {
+      pool.query(INSERT_HOMES, (err, rows, fields) => {
+        if (err) {
+          logger.error(`beforeEach CLEAR error: ${err}`)
+        } 
+      })
+      
+      chai
+          .request(server)
+          .get('/api/studenthome')
+          .end((err, res) => {
+              assert.ifError(err)
+              res.should.have.status(200)
+              res.should.be.an('object')
+              res.body.should.be.an('object').that.has.all.keys('status', 'result')
+              let { status, result } = res.body
+              status.should.be.a('string').that.equals('successful')
+              result.should.be.an('array')
+              result.length.should.equal(2)
+              done()
+          })
+    })
+})
 
-    //                 let { error, message } = res.body
-    //                 error.should.be.a('string').that.equals('Some error occured')
-    //                 message.should.be.a('string').that.equals('residence is missing!')
-    //                 done()
-    //             })
-    //     })
-    //     it('TC-201-2 should return valid error when postal code is invalid', done => {
-            
-    //         chai
-    //             .request(server)
-    //             .post('/api/studenthome')
-    //             .send({
-    //                 name: 'home1',
-    //                 streetName: 'korvelseweg',
-    //                 houseNr: 1,
-    //                 phoneNr: '0612345678',
-    //                 postalCode: '1234J',
-    //                 residence: 'Tilburg'
-    //             }) // postal code is in the wrong format
-    //             .end((err, res) => {
-    //                 assert.ifError(err)
-    //                 res.should.have.status(400)
-    //                 res.should.be.an('object')
-    //                 res.body.should.be.an('object').that.has.all.keys('error', 'message')
 
-    //                 let { error, message } = res.body
-    //                 error.should.be.a('string').that.equals('Some error occured')
-    //                 message.should.be.a('string').that.equals('postal code is invalid!')
-    //                 done()
-    //             })
-    //     })
-    //     it('TC-201-3 should return valid error when phone number is invalid', done => {
-    //         chai
-    //             .request(server)
-    //             .post('/api/studenthome')
-    //             .send({
-    //                 name: 'home1',
-    //                 streetName: 'korvelseweg',
-    //                 houseNr: 1,
-    //                 phoneNr: '0612a45678',
-    //                 postalCode: '1234JL',
-    //                 residence: 'Tilburg'
-    //             }) // phone number is in the wrong format
-    //             .end((err, res) => {
-    //                 assert.ifError(err)
-    //                 res.should.have.status(400)
-    //                 res.should.be.an('object')
-    //                 res.body.should.be.an('object').that.has.all.keys('error', 'message')
+describe('UC-203 get home by ID', () => {
+    it('TC-203-1 should return valid error when studenhome ID does not exist', done => {
+      chai
+      .request(server)
+      .get('/api/studenthome/3')
+      .end((err, res) => {
+          assert.ifError(err)
+          res.should.have.status(404)
+          res.should.be.an('object')
+          res.body.should.be.an('object').that.has.all.keys('error', 'message')
+          let { error, message } = res.body
+          error.should.be.a('string').that.equals('Some error occured')
+          message.should.be.an('string').that.equals('id was not found')
+          done()
+      })  
+    })
 
-    //                 let { error, message } = res.body
-    //                 error.should.be.a('string').that.equals('Some error occured')
-    //                 message.should.be.a('string').that.equals('phone number is invalid!')
-    //                 done()
-    //             })
-    //     })
-    //     it('TC-201-4 should return valid error when studenthome already exists', done => {
-    //         database.db = [{
-    //             name: 'home1',
-    //             streetName: 'korvelseweg',
-    //             houseNr: 1,
-    //             phoneNr: '0612345678',
-    //             postalCode: '1234JL',
-    //             residence: 'Tilburg'
-    //         }]
-    //         chai
-    //             .request(server)
-    //             .post('/api/studenthome')
-    //             .send({
-    //                 name: 'home2',
-    //                 streetName: 'korvelseweg',
-    //                 houseNr: 1,
-    //                 phoneNr: '0612345678',
-    //                 postalCode: '1234JL',
-    //                 residence: 'Tilburg'
-    //             }) // same adress as home1
-    //             .end((err, res) => {
-    //                 assert.ifError(err)
-    //                 res.should.have.status(400)
-    //                 res.should.be.an('object')
-    //                 res.body.should.be.an('object').that.has.all.keys('error', 'message')
+    it('TC-203-2 should return JSON object of the found studenthome', done => {
+        chai
+          .request(server)
+          .get('/api/studenthome/1')
+          .end((err, res) => {
+            assert.ifError(err)
+            res.should.have.status(200)
+            res.should.be.an('object')
+            res.body.should.be.an('object').that.has.all.keys('status', 'result')
+            let { status, result } = res.body
+            status.should.be.a('string').that.equals('successful')
+            result.should.be.an('object').that.has.all.keys('Name', 'Address', 'House_Nr', 'Postal_Code', 'Telephone', 'City', 'ID', 'Meals', 'UserID')
+            done()
+          })
+    })
+})
 
-    //                 let { error, message } = res.body
-    //                 error.should.be.a('string').that.equals('Some error occured')
-    //                 message.should.be.a('string').that.equals('studenthome already exists')
-    //                 done()
-    //             })
-    //     })
-    //     it('TC-201-6 should return JSON object of the added studenthome', done => {
-    //         chai
-    //         .request(server)
-    //         .post('/api/studenthome')
-    //         .send({
-    //             name: 'home1',
-    //             streetName: 'testweg',
-    //             houseNr: 1,
-    //             phoneNr: '0612345678',
-    //             postalCode: '1234JD',
-    //             residence: 'Tilburg'
-    //         }) // studenthome data is valid
-    //         .end((err, res) => {
-    //             assert.ifError(err)
-    //             res.should.have.status(200)
-    //             res.should.be.an('object')
-    //             res.body.should.be.an('object').that.has.all.keys('status', 'result')
+describe('UC-204 update studenhome', () => {
 
-    //             let { status, result } = res.body
-    //             status.should.be.a('string').that.equals('success')
-    //             result.should.be.a('object').that.has.all.keys('name', 'streetName', 'houseNr', 'phoneNr', 'postalCode', 'residence', 'meals', 'id')
-    //             let { meals, id } = result
-    //             meals.should.be.an('array')
-    //             id.should.be.a('number')
-    //             done()
-    //         })
-    //     })
-    // })
+  it('TC-204-1 should return valid error when required field is missing', done => {
+    jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
+      chai
+      .request(server)
+      .put('/api/studenthome/3')
+      .set('authorization', 'Bearer ' + token)
+      .send({
+          Name: 'test aangepast',
+          Address: 'test',
+          House_Nr: 1,
+          Postal_Code: '1234AB',
+          City: 'Tilburg'
+      }) // telephone is missing
+      .end((err, res) => {
+        assert.ifError(err)
+        res.should.have.status(400)
+        res.should.be.an('object')
+        res.body.should.be.an('object').that.has.all.keys('error', 'message')
+        let { error, message } = res.body
+        error.should.be.a('string').that.equals('Some error occured')
+        message.should.be.a('string').that.equals('phone number is missing!')
+        done()
+      })
+    })
+  })
 
-//     describe('getAll', () => {
-//         beforeEach(done => {
-//             logger.log("database wiped")
-//             database.db = []
-//             done()
-//         })
+  it('TC-204-2 should return valid error when postal code is invalid', done => {
+    jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
+      chai
+      .request(server)
+      .put('/api/studenthome/1')
+      .set('authorization', 'Bearer ' + token)
+      .send({
+          Name: 'test aangepast',
+          Address: 'test',
+          House_Nr: 1,
+          Postal_Code: '1234A',
+          Telephone: '0612345678',
+          City: 'Tilburg'
+      }) // postal code is invalid
+      .end((err, res) => {
+        assert.ifError(err)
+        res.should.have.status(400)
+        res.should.be.an('object')
+        res.body.should.be.an('object').that.has.all.keys('error', 'message')
+        let { error, message } = res.body
+        error.should.be.a('string').that.equals('Some error occured')
+        message.should.be.a('string').that.equals('postal code is invalid!')
+        done()
+      })
+    })
+  })
 
-//         it('TC-202-2 should return empty list', done => {
-//             chai
-//                 .request(server)
-//                 .get('/api/studenthome')
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(200)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('status', 'result')
-//                     let { status, result } = res.body
-//                     status.should.be.a('string').that.equals('success')
-//                     result.should.be.an('array')
-//                     result.length.should.equal(0)
-//                     done()
-//                 })
-//         })
-//         it('TC-202-1 should return list of 2 items', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .get('/api/studenthome')
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(200)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('status', 'result')
-//                     let { status, result } = res.body
-//                     status.should.be.a('string').that.equals('success')
-//                     result.should.be.an('array')
-//                     result.length.should.equal(2)
-//                     done()
-//                 })
-//         })
-//     })
+  it('TC-204-3 should return valid error when phone number is invalid', done => {
+    jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
+      chai
+      .request(server)
+      .put('/api/studenthome/1')
+      .set('authorization', 'Bearer ' + token)
+      .send({
+          Name: 'test aangepast',
+          Address: 'test',
+          House_Nr: 1,
+          Postal_Code: '1234AB',
+          Telephone: '061a345678',
+          City: 'Tilburg'
+      }) // phone number is invalid
+      .end((err, res) => {
+        assert.ifError(err)
+        res.should.have.status(400)
+        res.should.be.an('object')
+        res.body.should.be.an('object').that.has.all.keys('error', 'message')
+        let { error, message } = res.body
+        error.should.be.a('string').that.equals('Some error occured')
+        message.should.be.a('string').that.equals('phone number is invalid!')
+        done()
+      })
+    })
+  })
 
-//     describe('getById', () => {
-//         beforeEach(done => {
-//             logger.log("database wiped")
-//             database.db = []
-//             done()
-//         })
+  it('TC-204-4 should return valid error when studenthome does not exist', done => {
+    jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
+      chai
+      .request(server)
+      .put('/api/studenthome/3')
+      .set('authorization', 'Bearer ' + token)
+      .send({
+          Name: 'test aangepast',
+          Address: 'test',
+          House_Nr: 1,
+          Postal_Code: '1234AB',
+          Telephone: '0612345678',
+          City: 'Tilburg'
+      }) // correct data
+      .end((err, res) => {
+        assert.ifError(err)
+        res.should.have.status(400)
+        res.should.be.an('object')
+        res.body.should.be.an('object').that.has.all.keys('error', 'message')
+        let { error, message } = res.body
+        error.should.be.a('string').that.equals('Some error occured')
+        message.should.be.a('string').that.equals('home id not found!')
+        done()
+      })
+    })
+  })
 
-//         it('TC-203-1 should return valid error when studenhome ID does not exist', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .get('/api/studenthome/3')
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(404)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('error', 'message')
-//                     let { error, message } = res.body
-//                     error.should.be.a('string').that.equals('Some error occured')
-//                     message.should.be.an('string').that.equals('HomeId 3 not found')
-//                     done()
-//                 })
-//         })
-//         it('TC-203-2 should return JSON object of the found studenthome', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .get('/api/studenthome/1')
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(200)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('status', 'result')
-//                     let { status, result } = res.body
-//                     status.should.be.a('string').that.equals('success')
-//                     result.should.be.an('object').that.has.all.keys('name', 'streetName', 'houseNr', 'postalCode', 'residence', 'phoneNr', 'meals', 'id')
-//                     done()
-//                 })
-//         })
-//     })
+})
 
-//     describe('update', () => {
-//         beforeEach(done => {
-//             logger.log("database wiped")
-//             database.db = []
-//             done()
-//         })
-
-//         it('TC-204-1 should return valid error when required field is missing', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .put('/api/studenthome/1')
-//                 .send({
-//                     name: 'test aangepast',
-//                     streetName: 'test',
-//                     houseNr: 1,
-//                     postalCode: '1234AB',
-//                     phoneNr: '0612345678',
-//                 }) // residence is missing
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(400)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('error', 'message')
-//                     let { error, message } = res.body
-//                     error.should.be.a('string').that.equals('Some error occured')
-//                     message.should.be.an('string').that.equals('residence is missing!')
-//                     done()
-//                 })
-//         })
-//         it('TC-204-2 should return valid error when postal code is invalid', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .put('/api/studenthome/1')
-//                 .send({
-//                     name: 'test aangepast',
-//                     streetName: 'test',
-//                     houseNr: 1,
-//                     postalCode: '1234A',
-//                     residence: 'Breda',
-//                     phoneNr: '0612345678',
-//                 }) // postal code is in the wrong format
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(400)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('error', 'message')
-
-//                     let { error, message } = res.body
-//                     error.should.be.a('string').that.equals('Some error occured')
-//                     message.should.be.a('string').that.equals('postal code is invalid!')
-//                     done()
-//                 })
-//         })
-//         it('TC-204-3 should return valid error when phone number is invalid', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .put('/api/studenthome/1')
-//                 .send({
-//                     name: 'home1',
-//                     streetName: 'korvelseweg',
-//                     houseNr: 1,
-//                     phoneNr: '0612a45678',
-//                     postalCode: '1234JL',
-//                     residence: 'Tilburg'
-//                 }) // phone number is in the wrong format
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(400)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('error', 'message')
-
-//                     let { error, message } = res.body
-//                     error.should.be.a('string').that.equals('Some error occured')
-//                     message.should.be.a('string').that.equals('phone number is invalid!')
-//                     done()
-//                 })
-//         })
-//         it('TC-204-4 should return valid error when studenthome does not exist', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .put('/api/studenthome/3')
-//                 .send({
-//                     name: 'home1',
-//                     streetName: 'korvelseweg',
-//                     houseNr: 1,
-//                     phoneNr: '0612345678',
-//                     postalCode: '1234JL',
-//                     residence: 'Tilburg'
-//                 }) 
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(404)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('error', 'message')
-//                     let { error, message } = res.body
-//                     error.should.be.a('string').that.equals('Some error occured')
-//                     message.should.be.an('string').that.equals('item not found')
-//                     done()
-//                 })
-//         })
-//         it('TC-204-6 should return JSON of new studenthome', done => {
-//             database.db = [testObject1, testObject2]
-//             chai
-//                 .request(server)
-//                 .put('/api/studenthome/1')
-//                 .send({
-//                     name: 'test',
-//                     streetName: 'test',
-//                     houseNr: 1,
-//                     postalCode: '1234AB',
-//                     residence: 'Breda',
-//                     phoneNr: '0612345678',
-//                 }) 
-//                 .end((err, res) => {
-//                     assert.ifError(err)
-//                     res.should.have.status(200)
-//                     res.should.be.an('object')
-//                     res.body.should.be.an('object').that.has.all.keys('status', 'result')
-//                     let { status, result } = res.body
-//                     status.should.be.a('string').that.equals('success')
-//                     result.should.be.an('object').that.has.all.keys('name', 'streetName', 'houseNr', 'postalCode', 'residence', 'phoneNr', 'meals', 'id')
-//                     done()
-//                 })
-//         })
-//     })
+        // it('TC-204-6 should return JSON of new studenthome', done => {
+        //     database.db = [testObject1, testObject2]
+        //     chai
+        //         .request(server)
+        //         .put('/api/studenthome/1')
+        //         .send({
+        //             name: 'test',
+        //             streetName: 'test',
+        //             houseNr: 1,
+        //             postalCode: '1234AB',
+        //             residence: 'Breda',
+        //             phoneNr: '0612345678',
+        //         }) 
+        //         .end((err, res) => {
+        //             assert.ifError(err)
+        //             res.should.have.status(200)
+        //             res.should.be.an('object')
+        //             res.body.should.be.an('object').that.has.all.keys('status', 'result')
+        //             let { status, result } = res.body
+        //             status.should.be.a('string').that.equals('success')
+        //             result.should.be.an('object').that.has.all.keys('name', 'streetName', 'houseNr', 'postalCode', 'residence', 'phoneNr', 'meals', 'id')
+        //             done()
+        //         })
+        // })
 
 //     describe('delete', () => {
 //         beforeEach(done => {

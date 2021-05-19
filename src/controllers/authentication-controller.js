@@ -18,6 +18,7 @@ module.exports = {
             'email is invalid!')
             assert(typeof Student_Number === 'string', 'student number is missing!')
             assert(typeof Password === 'string', 'password is missing!')
+            assert(Password.length >= 8, 'password needs to be atleast 8 characters!')
             next()
         } catch (err) {
             logger.log("User data is invalid!: ", err.message);
@@ -42,7 +43,7 @@ module.exports = {
             if (connection) {
                 connection.query(sqlQuery, values, (err, results, fields) => {
                     if (err) {
-                        next({ message: 'create failed', errorCode: 500 })
+                        next({ message: 'user already exists!', errorCode: 400 })
                     }
                     if (results) {
                         logger.trace('results: ', results)
@@ -70,9 +71,11 @@ module.exports = {
         logger.log(req.body)
         const { Email, Password} = req.body
         try {
-          assert(typeof Email === 'string', 'email must be a string.')
-          assert(
-            typeof Password === 'string','password must be a string.')
+          assert(typeof Email === 'string', 'email is missing!')
+          assert.match(Email, /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/, 
+            'email is invalid!')
+          assert(typeof Password === 'string', 'password is missing!')
+          assert(Password.length >= 8, 'password needs to be atleast 8 characters!')
           next()
         } catch (err) {
           logger.log("User data is invalid!: ", err.message);
@@ -117,19 +120,16 @@ module.exports = {
                   // Userinfo returned to the caller.
                   const userinfo = {
                     id: rows[0].ID,
-                    firstName: rows[0].First_Name,
-                    lastName: rows[0].Last_Name,
-                    emailAdress: rows[0].Email,
-                    token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
+                    First_Name: rows[0].First_Name,
+                    Last_Name: rows[0].Last_Name,
+                    Email: rows[0].Email,
+                    Token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
                   }
                   logger.debug('Logged in, sending: ', userinfo)
                   res.status(200).json(userinfo)
                 } else {
                   logger.info('User not found or password invalid')
-                  res.status(401).json({
-                    message: 'User not found or password invalid',
-                    datetime: new Date().toISOString()
-                  })
+                  next({message: 'user not found or password invalid', errorCode: 400})
                 }
               }
             }
@@ -145,10 +145,7 @@ module.exports = {
         const authHeader = req.headers.authorization
         if (!authHeader) {
           logger.warn('Authorization header missing!')
-          res.status(401).json({
-            error: 'Authorization header missing!',
-            datetime: new Date().toISOString()
-          })
+          next({message: 'not authorized', errorCode:401})
         } else {
           // Strip the word 'Bearer ' from the headervalue
           const token = authHeader.substring(7, authHeader.length)
@@ -156,10 +153,7 @@ module.exports = {
           jwt.verify(token, jwtSecretKey, (err, payload) => {
             if (err) {
               logger.warn('Not authorized')
-              res.status(401).json({
-                error: 'Not authorized',
-                datetime: new Date().toISOString()
-              })
+              next({message: 'not authorized', errorCode:401})
             }
             if (payload) {
               logger.debug('token is valid', payload)
