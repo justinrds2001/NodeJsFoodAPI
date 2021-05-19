@@ -166,42 +166,6 @@ describe('UC-201 create studenthome', () => {
         })
     })
 
-    /*it('TC-201-4 should return valid error when studenthome already exists', done => {
-        pool.query(INSERT_HOMES, (err, rows, fields) => {
-            if (err) {
-              logger.error(`before INSERT_USER: ${err}`)
-            }
-            if (rows) {
-              logger.debug(`before INSERT_USER done`)
-            }
-        })
-        
-        jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
-            chai
-            .request(server)
-            .post('/api/studenthome')
-            .set('authorization', 'Bearer ' + token)
-            .send({
-                Name: 'House C',
-                Address: 'korvelseweg',
-                House_Nr: 20,
-                Postal_Code: '1234AB',
-                Telephone: '0612345678',
-                City: 'Tilburg'
-            }) // same adress as house A
-            .end((err, res) => {
-                assert.ifError(err)
-                res.should.have.status(400)
-                res.should.be.an('object')
-                res.body.should.be.an('object').that.has.all.keys('error', 'message')
-                let { error, message } = res.body
-                error.should.be.a('string').that.equals('Some error occured')
-                message.should.be.a('string').that.equals('studenthome is invalid or already exists')
-                done()
-            })
-        })
-    })*/ // somehow only works on local database but not on gitlab!!!
-
     it('TC-201-5 should return valid error when user is not logged in', done => {
       pool.query(INSERT_USER, (err, rows, fields) => {
           if (err) {

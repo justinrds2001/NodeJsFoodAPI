@@ -7,15 +7,6 @@ const logger = require('tracer').console();
 const jwt = require('jsonwebtoken')
 
 module.exports = {
-    // validateStudenthomePlace(req, res, next) {
-    //     try {
-    //         assert(!database.homeDoesAlreadyExist(req.body), 'studenthome already exists')
-    //         next()
-    //     } catch (err) {
-    //         logger.log("Studenthome already exists!: ", err.message)
-    //         next({ message: err.message, errorCode: 400 })
-    //     }
-    // },
 
     validateStudenthome: (req, res, next) => {
         logger.log("validate movie");
@@ -51,7 +42,7 @@ module.exports = {
         logger.log('UserID: '+ UserID)
 
         let values = [ Name, Address, House_Nr, UserID, Postal_Code, Telephone, City ]
-        logger.trace('movie =', studenthome)
+        logger.trace('studenthome =', studenthome)
 
         let sqlQuery = 'insert into studenthome(Name, Address, House_Nr, UserID, Postal_Code, Telephone, City) ' +
         'values(?, ?, ?, ?, ?, ?, ?)'
@@ -235,43 +226,6 @@ module.exports = {
             }
         })
     },
-
-    // delete: (req, res, next) => {
-    //     logger.trace('delete called')
-    //     const studenthomeID = req.params.homeId
-    //     const sqlDeleteQuery = 'delete from studenthome where ID = ?'
-    //     const sqlInfoQuery = 'select * from studenthome where ID = ?'
-    //     let studenthome
-
-    //     pool.getConnection((err, connection) => {
-    //         if (err) {
-    //             logger.log(err)
-    //             next({ message: 'connection failed', errorCode: 500 })
-    //         }
-    //         if (connection) {
-    //             connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
-    //                 if (err) {
-    //                     next({ message: 'getById failed', errorCode: 500 })
-    //                 }
-    //                 if (results) {
-    //                     logger.trace('results: ', results)
-    //                     studenthome = results[0]
-    //                     connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
-    //                         if (err) {
-    //                             next({ message: 'delete failed', errorCode: 500 })
-    //                         }
-    //                         if (results) {
-    //                             res.status(200).json({
-    //                                 status: 'successful',
-    //                                 deletedItem: studenthome
-    //                             })
-    //                         }
-    //                     })
-    //                 }
-    //             })
-    //         }
-    //     })
-    // },
 
     delete: (req, res, next) => {
         logger.trace('delete called')

@@ -157,59 +157,13 @@ module.exports = {
             }
             if (payload) {
               logger.debug('token is valid', payload)
-              // User heeft toegang. Voeg UserId uit payload toe aan
-              // request, voor ieder volgend endpoint.
+              // User has access. add UserId from payload to
+              // request, for each next endpoint.
               req.userId = payload.id
               next()
             }
           })
         }
       },
-
-    // renewToken(req, res, next) {
-    //     logger.debug('renewToken')
-    
-    //     pool.getConnection((err, connection) => {
-    //       if (err) {
-    //         logger.error('Error getting connection from pool')
-    //         res
-    //           .status(500)
-    //           .json({ error: err.toString(), datetime: new Date().toISOString() })
-    //       }
-    //       if (connection) {
-    //         // 1. Kijk of deze useraccount bestaat.
-    //         connection.query(
-    //           'SELECT * FROM `user` WHERE `ID` = ?',
-    //           [req.userId],
-    //           (err, rows, fields) => {
-    //             connection.release()
-    //             if (err) {
-    //               logger.error('Error: ', err.toString())
-    //               res.status(500).json({
-    //                 error: err.toString(),
-    //                 datetime: new Date().toISOString()
-    //               })
-    //             } else {
-    //               // 2. User gevonden, return user info met nieuw token.
-    //               // Create an object containing the data we want in the payload.
-    //               const payload = {
-    //                 id: rows[0].ID
-    //               }
-    //               // Userinfo returned to the caller.
-    //               const userinfo = {
-    //                 id: rows[0].ID,
-    //                 firstName: rows[0].First_Name,
-    //                 lastName: rows[0].Last_Name,
-    //                 emailAdress: rows[0].Email,
-    //                 token: jwt.sign(payload, jwtSecretKey, { expiresIn: '2h' })
-    //               }
-    //               logger.debug('Sending: ', userinfo)
-    //               res.status(200).json(userinfo)
-    //             }
-    //           }
-    //         )
-    //       }
-    //     })
-    // }
 
 }

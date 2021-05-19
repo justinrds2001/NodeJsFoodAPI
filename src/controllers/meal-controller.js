@@ -3,6 +3,7 @@ const database = require("../config/database");
 const config = require('../config/config');
 const pool = require("../config/database");
 const logger = require('tracer').console();
+const jwt = require('jsonwebtoken')
 
 module.exports = {
     validateMeal: (req, res, next) => {

@@ -2,7 +2,6 @@ const express = require('express')
 const logger = require('tracer').console()
 const router = express.Router()
 const authenticatorController = require('../controllers/authentication-controller')
-const emailValidator = require('../util/emailvalidator')
 
 router.post('/login', 
     authenticatorController.validateLogin, 
