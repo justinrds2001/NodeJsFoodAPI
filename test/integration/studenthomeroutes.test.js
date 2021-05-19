@@ -457,7 +457,83 @@ describe('UC-204 update studenhome', () => {
       })
     })
   })
+})
 
+describe('UC-205 delete studenthome', () => {
+  it('TC-205-1 should return valid error when studenthome does not exist.', done => {
+    jwt.sign({ id: 1 }, 'secret', { expiresIn: '2h' }, (err, token) => {
+      chai
+      .request(server)
+      .delete('/api/studenthome/3')
+      .set('authorization', 'Bearer ' + token)
+      .end((err, res) => {
+          assert.ifError(err)
+          res.should.have.status(400)
+          res.should.be.an('object')
+          res.body.should.be.an('object').that.has.all.keys('error', 'message')
+          let { error, message } = res.body
+          error.should.be.a('string').that.equals('Some error occured')
+          message.should.be.an('string').that.equals('id was not found')
+          done()
+      }) 
+    })   
+  })
+    
+  it('TC-205-2 should return valid error when user is not logged in', done => {
+      pool.query(INSERT_HOMES)
+      chai
+      .request(server)
+      .delete('/api/studenthome/1')
+      .end((err, res) => {
+          assert.ifError(err)
+          res.should.have.status(401)
+          res.should.be.an('object')
+          res.body.should.be.an('object').that.has.all.keys('error', 'message')
+          let { error, message } = res.body
+          error.should.be.a('string').that.equals('Some error occured')
+          message.should.be.an('string').that.equals('not authorized')
+          done()
+      })  
+  })
+
+  it("TC-205-3 should return valid error when user is not the owner", function (done) {
+      chai
+        .request(server)
+        .delete("/api/studenthome/2")
+        .end((err, res) => {
+          res.should.have.status(401)
+          res.should.be.an("object")
+
+          let {error } = res.body
+          error.should.be
+            .an("string")
+            .that.equals("Some error occured")
+          done()
+      })
+  })
+
+  /*it("TC-205-4 expects 401 with message no exxec to this", function (done) {
+
+  pool.query(
+    "INSERT INTO user (`ID`,`First_Name`, `Last_Name`, `Email`, `Student_Number`, `Password`) VALUES (2, 'Diren', 'Ozturk', 'diren_2001@hotmail.com','2158837', 'secret');",
+    (err, rows, fields) => {
+      chai
+          .request(server)
+          .delete("/api/studenthome/2")
+          .set("Authorization", "Bearer "  + jwt.sign({ id: 2 }, "secret"))
+          .end((err, res) => {
+              res.should.have.status(401)
+              res.should.be.an("object")
+
+              let {error } = res.body;
+              error.should.be
+                  .an("string")
+                  .that.equals("this user is not allowed to change this data")
+              done()
+          })
+      
+      })
+  })*/
 })
 
         // it('TC-204-6 should return JSON of new studenthome', done => {

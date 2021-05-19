@@ -208,7 +208,9 @@ module.exports = {
                         next({ message: 'update failed', errorCode: 500 }) 
                     }
                     if (results){
-                        if (results[0]) {
+                        if (results.length === 0) {
+                            next({message: 'home id not found!', errorCode: 400})
+                        } else {
                             if (results[0].UserID == userID) {
                                 connection.query(sqlQuery, values, (error, results) => {
                                     connection.release()
@@ -225,16 +227,51 @@ module.exports = {
                                     }
                                 })
                             } else{
-                                next({ message: 'wrong userID / not authorized', errorCode: 400 }) 
+                                next({ message: 'not authorized', errorCode: 400 }) 
                             }
-                        } else {
-                            next({ message: 'home id not found!', errorCode: 400 })
                         }
                     } 
                 })
             }
         })
     },
+
+    // delete: (req, res, next) => {
+    //     logger.trace('delete called')
+    //     const studenthomeID = req.params.homeId
+    //     const sqlDeleteQuery = 'delete from studenthome where ID = ?'
+    //     const sqlInfoQuery = 'select * from studenthome where ID = ?'
+    //     let studenthome
+
+    //     pool.getConnection((err, connection) => {
+    //         if (err) {
+    //             logger.log(err)
+    //             next({ message: 'connection failed', errorCode: 500 })
+    //         }
+    //         if (connection) {
+    //             connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
+    //                 if (err) {
+    //                     next({ message: 'getById failed', errorCode: 500 })
+    //                 }
+    //                 if (results) {
+    //                     logger.trace('results: ', results)
+    //                     studenthome = results[0]
+    //                     connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
+    //                         if (err) {
+    //                             next({ message: 'delete failed', errorCode: 500 })
+    //                         }
+    //                         if (results) {
+    //                             res.status(200).json({
+    //                                 status: 'successful',
+    //                                 deletedItem: studenthome
+    //                             })
+    //                         }
+    //                     })
+    //                 }
+    //             })
+    //         }
+    //     })
+    // },
 
     delete: (req, res, next) => {
         logger.trace('delete called')
@@ -243,30 +280,57 @@ module.exports = {
         const sqlInfoQuery = 'select * from studenthome where ID = ?'
         let studenthome
 
+        const authHeader = req.headers.authorization
+
+        // Retrieving UserID from json webtoken
+        const token = authHeader.substring(7, authHeader.length)
+        const decoded = jwt.verify(token, 'secret')
+        const userID = decoded.id
+
+        const sqlStudenthomeQuery = 'select UserID from studenthome where ID = ' + studenthomeID
+
         pool.getConnection((err, connection) => {
             if (err) {
                 logger.log(err)
                 next({ message: 'connection failed', errorCode: 500 })
             }
-            if (connection) {
-                connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
-                    if (err) {
-                        next({ message: 'getById failed', errorCode: 500 })
+
+            if (connection){
+                connection.query(sqlStudenthomeQuery, (error, results) => {
+                    if (error) {
+                        next({ message: 'update failed', errorCode: 500 })
                     }
-                    if (results) {
-                        logger.trace('results: ', results)
-                        studenthome = results[0]
-                        connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
-                            if (err) {
-                                next({ message: 'delete failed', errorCode: 500 })
-                            }
-                            if (results) {
-                                res.status(200).json({
-                                    status: 'successful',
-                                    deletedItem: studenthome
+                    if (results){
+                        logger.log('result: ' + results[0])
+                        if (results.length === 0) {
+                            next({ message: 'id was not found', errorCode: 400 })
+                        } else {
+                            if (results[0].UserID == userID){
+                                connection.query(sqlInfoQuery, studenthomeID, (err, results, fields) => {
+                                    if (err) {
+                                        next({ message: 'getById failed', errorCode: 500 })
+                                    }
+                                    if (results) {
+                                        logger.trace('results: ', results)
+                                        studenthome = results[0]
+                                        connection.query(sqlDeleteQuery, studenthomeID, (err, results, fields) => {
+                                            connection.release()
+                                            if (err) {
+                                                next({ message: 'delete failed', errorCode: 500 })
+                                            }
+                                            if (results) {
+                                                res.status(200).json({
+                                                    status: 'successful',
+                                                    deletedItem: studenthome
+                                                })
+                                            }
+                                        })
+                                    }
                                 })
-                            }
-                        })
+                            }else{
+                                next({ message: 'not authorized', errorCode: 400 }) 
+                            } 
+                        }
                     }
                 })
             }
